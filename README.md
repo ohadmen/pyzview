@@ -1,4 +1,5 @@
 # pyzview
 python interface for zview 3d viewer.
 ## Installation
-`pip install git+https://github.com/ohadmen/pyzview`
+* Download and install zview https://github.com/ohadmen/zview/releases/latest
+* `pip install git+https://github.com/ohadmen/pyzview`
