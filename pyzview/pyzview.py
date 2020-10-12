@@ -2,7 +2,7 @@ import zview_module
 import numpy as np
 
 
-class PyZview:
+class Pyzview:
     @staticmethod
     def _get_trimesh_indices(sz):
         indx = np.arange(sz[0] * sz[1], dtype=np.int32).reshape(sz[:2])
