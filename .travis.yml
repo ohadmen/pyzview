@@ -20,6 +20,12 @@ matrix:
       env: DOCKER_IMAGE=quay.io/pypa/manylinux2010_x86_64
            PLAT=manylinux2010_x86_64
 
+before_install:
+  - wget https://github.com/ohadmen/zview/releases/download/1.4/zview-1.4.deb
+  - apt-get install qt5-default
+  - dpkg -i zview-1.4.deb
+
+
 install:
   - docker pull $DOCKER_IMAGE
 
