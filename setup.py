@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 setup(
      name='pyzview',  
-     version='0.2',
+     version='0.4',
      author="Ohad Menashe",
      author_email="ohad.men@gmail.com",
      description="zview python inferface",

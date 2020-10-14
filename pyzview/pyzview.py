@@ -43,6 +43,8 @@ class Pyzview:
     def _get_pts_arr(cls, xyz, color, alpha):
         if len(xyz.shape) == 3:
             xyz = xyz.reshape(-1, xyz.shape[2])
+        if len(xyz.shape)== 1 and xyz.shape[0]==3:
+            xyz = xyz.reshape(1, 3)
         n, ch = xyz.shape
         assert ch >= 3
         if ch == 3:
@@ -119,7 +121,7 @@ class Pyzview:
     def remove_shape(self, k):
         return self.zv.removeShape(k)
 
-    def add_marker(self, pt, color=None, scale=1):
+    def add_marker(self, pt, color=None, scale=1.0):
         xyzf = self._get_pts_arr(self.marker['v'] * scale + pt, color, 1)
         faces = self.marker['f']
         k = self.zv.addColoredMesh('marker-{}'.format(self.marker['counter']), xyzf, faces)
@@ -128,7 +130,7 @@ class Pyzview:
             raise RuntimeWarning("could not get response from zview app")
         return k
 
-    def update_marker(self, handle, pt, color=None, scale=1):
+    def update_marker(self, handle, pt, color=None, scale=1.0):
         xyzf = self._get_pts_arr(self.marker['v'] * scale + pt, color, 1)
         self.zv.updateColoredPoints(handle, xyzf)
 
