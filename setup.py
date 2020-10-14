@@ -3,7 +3,6 @@ from setuptools import setup, find_packages, Extension
 module = Extension("zview_module",
                        sources=["pyzview/zview_inf.cpp"],
                        libraries = ["zview_inf"],
-
               )
 
 with open("README.md", "r") as fh:

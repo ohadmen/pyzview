@@ -18,7 +18,7 @@ function repair_wheel {
 
 
 # Compile wheels
-for PYBIN in /opt/python/*/bin; do
+for PYBIN in /opt/python/cp36*/bin; do
     "${PYBIN}/pip" install -r /io/dev-requirements.txt
     "${PYBIN}/pip" wheel /io/ --no-deps -w wheelhouse/
 done
@@ -29,7 +29,7 @@ for whl in wheelhouse/*.whl; do
 done
 
 # Install packages and test
-for PYBIN in /opt/python/*/bin/; do
+for PYBIN in /opt/python/cp36*/bin/; do
     "${PYBIN}/pip" install pyzview --no-index -f /io/wheelhouse
     (cd "$HOME"; "${PYBIN}/nosetests" pyzview)
 done
