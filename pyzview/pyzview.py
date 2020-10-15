@@ -133,6 +133,7 @@ class Pyzview:
     def update_marker(self, handle, pt, color=None, scale=1.0):
         xyzf = self._get_pts_arr(self.marker['v'] * scale + pt, color, 1)
         self.zv.updateColoredPoints(handle, xyzf)
+        return handle
 
     def add_points(self, string, xyz, color=None, alpha=None):
         xyzf = self._get_pts_arr(xyz, color, alpha)
@@ -142,6 +143,7 @@ class Pyzview:
     def update_points(self, handle, xyz, color=None, alpha=None):
         xyzf = self._get_pts_arr(xyz, color, alpha)
         self.zv.updateColoredPoints(handle, xyzf)
+        return handle
 
     KEY_ESC = 16777216
     KEY_ENTER = 16777220
