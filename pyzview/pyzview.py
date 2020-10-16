@@ -66,10 +66,10 @@ class Pyzview:
             if isinstance(color, str):
                 xyzrgba[:, 3:6] = np.array(cls._str2rgb(color))
             elif hasattr(color, '__len__'):
-                if len(color) == 3:
+                if len(color) == 3:# fixed rgb
                     xyzrgba[:, 3:6] = np.array(color)
-                elif len(color) == n:
-                    xyzrgba[:, 3:6] = np.array(color)
+                elif color.size == n:
+                    xyzrgba[:, 3:6] = color.reshape(-1, 1)
                 elif color.size // 3 == n:
                     xyzrgba[:, 3:6] = color.reshape(-1, 3)
                 elif color.size // 4 == n:
