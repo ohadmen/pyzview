@@ -37,4 +37,4 @@ Usage example
 
         i=i+1
         
-        k = zv.add_points("demo", pts) if 'k' not in locals() else zv.update_points(k, pts)                              6))
+        k = zv.add_points("demo", pts) if 'k' not in locals() else zv.update_points(k, pts)

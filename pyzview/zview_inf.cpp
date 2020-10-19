@@ -85,6 +85,10 @@ public:
         float* up = arr2ptr(u);
         return m_zvi->setCameraLookAt(ep[0],ep[1],ep[2],cp[0],cp[1],cp[2],up[0],up[1],up[2]);
     }
+    int getHandleNumFromString(const char *name)
+    {
+        return m_zvi->getHandleNumFromString(name);
+    }
 
 };
 
@@ -106,6 +110,8 @@ PYBIND11_MODULE(zview_module, m)
         .def("addEdges", &ZviewInfWrapper::addEdges)
         .def("addColoredEdges", &ZviewInfWrapper::addColoredEdges)
         .def("loadFile", &ZviewInfWrapper::loadFile)
-        .def("removeShape", &ZviewInfWrapper::removeShape);
+        .def("removeShape", &ZviewInfWrapper::removeShape)
+        .def("getHandleNumFromString", &ZviewInfWrapper::getHandleNumFromString);
+
         
 }

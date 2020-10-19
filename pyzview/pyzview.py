@@ -27,6 +27,10 @@ class Pyzview:
             col = [0, 1, 0]
         elif str == 'b':
             col = [0, 0, 1]
+        elif str == 'c':
+            col = [0, 1, 1]
+        elif str == 'm':
+            col = [1, 0, 1]
         elif str == 'y':
             col = [1, 1, 0]
         elif str == 'w':
@@ -43,7 +47,7 @@ class Pyzview:
     def _get_pts_arr(cls, xyz, color, alpha):
         if len(xyz.shape) == 3:
             xyz = xyz.reshape(-1, xyz.shape[2])
-        if len(xyz.shape)== 1 and xyz.shape[0]==3:
+        if len(xyz.shape) == 1 and xyz.shape[0] == 3:
             xyz = xyz.reshape(1, 3)
         n, ch = xyz.shape
         assert ch >= 3
@@ -66,7 +70,7 @@ class Pyzview:
             if isinstance(color, str):
                 xyzrgba[:, 3:6] = np.array(cls._str2rgb(color))
             elif hasattr(color, '__len__'):
-                if len(color) == 3:# fixed rgb
+                if len(color) == 3:  # fixed rgb
                     xyzrgba[:, 3:6] = np.array(color)
                 elif color.size == n:
                     xyzrgba[:, 3:6] = color.reshape(-1, 1)
@@ -83,25 +87,161 @@ class Pyzview:
         e, c, u = [x.tolist() if isinstance(x, np.ndarray) else x for x in [e, c, u]]
         return self.zv.setCameraLookAt(e, c, u)
 
+    @staticmethod
+    def _rotation_matrix(rot_vec):
+        rot_vec = np.asarray(rot_vec)
+        rot_vec = np.array(rot_vec)
+        angle = np.linalg.norm(rot_vec)
+        if angle == 0:
+            return np.eye(3)
+        v = rot_vec / angle
+        c = np.array(((0, -v[2], v[1]), (v[2], 0, -v[0]), (-v[1], v[0], 0)))
+        r = np.eye(3) + c * np.sin(angle) + (1 - np.cos(angle)) * c @ c
+        return r
+
+    @classmethod
+    def _get_tform(cls, tform_or_trs):
+        if isinstance(tform_or_trs, np.ndarray) and tform_or_trs.shape == (4, 4):
+            tform = tform_or_trs
+        elif isinstance(tform_or_trs, np.ndarray) and tform_or_trs.shape == (3, 4):
+            tform = np.eye(4)
+            tform[:3, :] = tform_or_trs
+        elif isinstance(tform_or_trs, tuple) and len(tform_or_trs) == 3:
+            t, r, s = tform_or_trs
+
+
+            tform = np.eye(4)
+            if r is None:
+                pass
+            elif (hasattr(r, '__len__') and len(r) == 3):
+                tform[:3, :3] = cls._rotation_matrix(r)
+            elif isinstance(r, np.ndarray):
+                assert r.shape == (3, 3)
+                tform[:3, :3] = r
+            else:
+                raise RuntimeError("unknown rotation strucutre")
+
+            sv = np.eye(4)
+            if s is None:
+                pass
+            elif isinstance(s, float) or isinstance(s, int):
+                sv[0, 0] = sv[1, 1] = sv[2, 2] = s
+            elif (hasattr(s, '__len__') and len(s) == 3):
+                for i in range(3):
+                    sv[i, i] = s[i]
+            else:
+                raise RuntimeError("unknown scale structure")
+            tform = tform @ sv
+            if t is None:
+                pass
+            else:
+                assert len(t) == 3
+                tform[:3, -1] = t.flatten()
+        else:
+            raise RuntimeError("unknown transforation structure")
+        return tform
+
+    def _set_obj(self, objtype, namehandle, tform_or_trs, color=None, alpha=None):
+        tform = self._get_tform(tform_or_trs)
+
+        xyzf = self._get_pts_arr(self.objects[objtype]['v'], color, 1)
+        xyzf[:, :3] = xyzf[:, :3] @ tform[:3, :3].T + tform[:3, -1]
+        k = self.zv.getHandleNumFromString(namehandle)
+
+        if isinstance(namehandle, str):
+            handlenum = self.zv.getHandleNumFromString(namehandle)
+            if handlenum == -1:
+                f = self.objects[objtype]['f']
+                handlenum = self.add_trimesh(namehandle, xyzf, f, color, alpha)
+            else:
+                self.zv.updateColoredPoints(handlenum, xyzf)
+            return handlenum
+        else:
+            self.zv.updateColoredPoints(namehandle, xyzf)
+            return namehandle
+
     def __init__(self):
         self.zv = zview_module.interface()  # get interface
-        s = np.sqrt(3) / 2
-        self.marker = {'v': np.array([[-1, -s, 0], [0, 2 * s, 0], [1, -s, 0], [0, 0, 2 * s]]) / 2,
-                       'f': np.array([[0, 3, 1], [1, 3, 2], [0, 2, 3], [0, 2, 1]]),
-                       'counter': 0}
-        self.rect = {'v': np.array(
+        s = 1 / np.sqrt(3)
+        self.objects = {}
+        self.objects['marker'] = {'v': np.array([[-1, -s, 0], [0, 2 * s, 0], [1, -s, 0], [0, 0, np.sqrt(8) * s]]) / 2,
+                                  'f': np.array([[0, 3, 1], [1, 3, 2], [0, 2, 3], [0, 2, 1]]),
+                                  'counter': 0}
+        self.objects['rect'] = {'v': np.array(
             [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0], [0, 0, 1], [0, 1, 1], [1, 1, 1], [1, 0, 1]]) * 2 - 1,
-                     'f': np.array(
-                         [[3, 1, 0], [3, 1, 2], [3, 6, 2], [3, 7, 6], [0, 1, 5], [0, 5, 4], [0, 7, 4], [0, 3, 7],
-                          [1, 2, 6],
-                          [1, 6, 5],
-                          [5, 6, 7], [4, 5, 7]])}
+                                'f': np.array(
+                                    [[3, 1, 0], [3, 1, 2], [3, 6, 2], [3, 7, 6], [0, 1, 5], [0, 5, 4], [0, 7, 4],
+                                     [0, 3, 7],
+                                     [1, 2, 6],
+                                     [1, 6, 5],
+                                     [5, 6, 7], [4, 5, 7]])}
+        self.objects['camera'] = {'v': np.array(
+            [[0, 0, 0], [1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 0, 0], [1, 0.1, 0], [0, 1, 0],
+             [0.1, 1, 0]]),
+            'f': np.array(
+                [[0, 1, 2],
+                 [0, 2, 3],
+                 [0, 3, 4],
+                 [0, 4, 1],
+                 [1, 2, 3], [1, 3, 4],
+                 [0, 6, 5], [0, 7, 8]])}
 
-    def add_rectangle(self, string, tform, color=None, alpha=None):
-        tform = np.array(tform)
-        assert tform.shape == (4, 4)
-        v = self.rect['v'] @ tform[:3, :3].T + tform[:3, -1]
-        return self.add_trimesh(string, v, self.rect['f'], color, alpha)
+    def set_rectangle(self, name, tform_or_trs, color=None, alpha=None):
+        """
+        :param name: object name or handle
+        :param tform_or_trs: 4x4 transofrmation, or (translation,rotation,scale) tuple
+        :param color: color rgb triplet, or  single char ('r','g','b','k' ,'c','m','y')
+        :param alpha: transparency
+        :return: handle to the drawn object
+        exmaple:
+        zv = Pyzview()
+        zv.set_rectangle("rect",np.eye(4),color='r')
+        t = (0,0,3)
+        r = (0,0,np.pi/4)
+        s = (1,2,3)
+        zv.set_rectangle("rect", (t,r,s), color='r')
+        """
+        return self._set_obj('rect', name, tform_or_trs, color, alpha)
+
+    def set_marker(self, name, tform_or_trs, color=None, alpha=None):
+        """
+        :param name: object name or handle
+        :param tform_or_trs: 4x4 transofrmation, or (translation,rotation,scale) tuple
+        :param color: color rgb triplet, or  single char ('r','g','b','k' ,'c','m','y')
+        :param alpha: transparency
+        :return: handle to the drawn object
+        exmaple:
+        zv = Pyzview()
+        zv.set_marker("rect",np.eye(4),color='r')
+        t = (0,0,3)
+        r = (0,0,np.pi/4)
+        s = (1,2,3)
+        zv.set_rectangle("rect", (t,r,s), color='r')
+        """
+        return self._set_obj('marker', name, tform_or_trs, color, alpha)
+
+    def set_camera(self, namehandle, tform_or_trs, k=np.eye(3), color=None, alpha=None):
+        tform = self._get_tform(tform_or_trs)
+        v = self.objects['camera']['v']
+        v[1:5] = v[1:5] @ np.linalg.inv(k).T
+        v = v @ tform[:3, :3].T + tform[:3, -1]
+
+        xyzf = self._get_pts_arr(v, color, alpha)
+        xyzf[0:1] = self._get_pts_arr(v[0:1], 'w', alpha)
+        xyzf[5:7] = self._get_pts_arr(v[5:7], 'r', alpha)
+        xyzf[7:9] = self._get_pts_arr(v[7:9], 'g', alpha)
+
+        if isinstance(namehandle, str):
+            handlenum = self.zv.getHandleNumFromString(namehandle)
+            if handlenum == -1:
+                f = self.objects['camera']['f']
+                handlenum = self.add_trimesh(namehandle, xyzf, f, color, alpha)
+            else:
+                self.zv.updateColoredPoints(handlenum, xyzf)
+            return handlenum
+        else:
+            self.zv.updateColoredPoints(namehandle, xyzf)
+            return namehandle
 
     def add_trimesh(self, string, xyz, faces, color=None, alpha=None):
         if len(xyz.shape) != 2:
@@ -112,38 +252,39 @@ class Pyzview:
             raise RuntimeWarning("could not get response from zview app")
         return k
 
-    def add_mesh(self, string, xyz, color=None, alpha=None):
+    def set_mesh(self, namehandle, xyz, color=None, alpha=None):
         if len(xyz.shape) != 3:
             raise RuntimeError("expecting nxmxD for D>=3")
-        faces = self._get_trimesh_indices(xyz.shape)
-        return self.add_trimesh(string, xyz.reshape(-1, xyz.shape[2]), faces, color, alpha)
+        xyzf = self._get_pts_arr(xyz.reshape(-1, xyz.shape[2]), color, alpha)
+        if isinstance(namehandle, str):
+            handlenum = self.zv.getHandleNumFromString(namehandle)
+            if handlenum == -1:
+                faces = self._get_trimesh_indices(xyz.shape)
+                handlenum = self.zv.addColoredMesh(namehandle, xyzf, faces)
+            else:
+                self.zv.updateColoredPoints(handlenum, xyzf)
+            return handlenum
+        else:
+            self.zv.updateColoredPoints(namehandle, xyzf)
+            return namehandle
 
-    def remove_shape(self, k):
-        return self.zv.removeShape(k)
+    def remove_shape(self, namehandle):
+        if isinstance(namehandle, str):
+            namehandle = self.zv.getHandleNumFromString(namehandle)
+        return self.zv.removeShape(namehandle)
 
-    def add_marker(self, pt, color=None, scale=1.0):
-        xyzf = self._get_pts_arr(self.marker['v'] * scale + pt, color, 1)
-        faces = self.marker['f']
-        k = self.zv.addColoredMesh('marker-{}'.format(self.marker['counter']), xyzf, faces)
-        self.marker['counter'] = self.marker['counter'] + 1
-        if k == -1:
-            raise RuntimeWarning("could not get response from zview app")
-        return k
-
-    def update_marker(self, handle, pt, color=None, scale=1.0):
-        xyzf = self._get_pts_arr(self.marker['v'] * scale + pt, color, 1)
-        self.zv.updateColoredPoints(handle, xyzf)
-        return handle
-
-    def add_points(self, string, xyz, color=None, alpha=None):
+    def set_points(self, namehandle, xyz, color=None, alpha=None):
         xyzf = self._get_pts_arr(xyz, color, alpha)
-        k = self.zv.addColoredPoints(string, xyzf)
-        return k
-
-    def update_points(self, handle, xyz, color=None, alpha=None):
-        xyzf = self._get_pts_arr(xyz, color, alpha)
-        self.zv.updateColoredPoints(handle, xyzf)
-        return handle
+        if isinstance(namehandle, str):
+            handlenum = self.zv.getHandleNumFromString(namehandle)
+            if handlenum == -1:
+                handlenum = self.zv.addColoredPoints(namehandle, xyzf)
+            else:
+                self.zv.updateColoredPoints(handlenum, xyzf)
+            return handlenum
+        else:
+            self.zv.updateColoredPoints(namehandle, xyzf)
+            return namehandle
 
     KEY_ESC = 16777216
     KEY_ENTER = 16777220
