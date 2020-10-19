@@ -94,7 +94,7 @@ class Pyzview:
         angle = np.linalg.norm(rot_vec)
         if angle == 0:
             return np.eye(3)
-        v = rot_vec / angle
+        v = rot_vec.flatten() / angle
         c = np.array(((0, -v[2], v[1]), (v[2], 0, -v[0]), (-v[1], v[0], 0)))
         r = np.eye(3) + c * np.sin(angle) + (1 - np.cos(angle)) * c @ c
         return r
