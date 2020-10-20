@@ -114,11 +114,10 @@ class Pyzview:
             tform = np.eye(4)
             if r is None:
                 pass
+            elif isinstance(r, np.ndarray) and (r.shape == (3, 3)):
+                tform[:3, :3] = r
             elif hasattr(r, '__len__') and len(r) == 3:
                 tform[:3, :3] = cls._rotation_matrix(r)
-            elif isinstance(r, np.ndarray):
-                assert r.shape == (3, 3)
-                tform[:3, :3] = r
             else:
                 raise RuntimeError("unknown rotation strucutre")
 
@@ -223,7 +222,7 @@ class Pyzview:
         return self._set_obj('marker', name, (t, r, scale), color, alpha)
 
     def set_camera(self, namehandle, t, r, scale=1.0, k=np.eye(3), color=None, alpha=None):
-        tform = self._get_tform((t, r, scale))
+        tform = self._get_tform((t, r, None))
         v = self.objects['camera']['v'] * scale
         v[1:5] = v[1:5] @ np.linalg.inv(k).T
         v = v @ tform[:3, :3].T + tform[:3, -1]
@@ -250,6 +249,15 @@ class Pyzview:
             raise RuntimeError("expecting nxD for D>=3")
         xyzf = self._get_pts_arr(xyz, color, alpha)
         k = self.zv.addColoredMesh(string, xyzf, faces)
+        if k == -1:
+            raise RuntimeWarning("could not get response from zview app")
+        return k
+
+    def add_edges(self, string, xyz, edgepair, color=None, alpha=None):
+        if len(xyz.shape) != 2:
+            raise RuntimeError("expecting nxD for D>=3")
+        xyzf = self._get_pts_arr(xyz, color, alpha)
+        k = self.zv.addColoredEdges(string, xyzf, edgepair)
         if k == -1:
             raise RuntimeWarning("could not get response from zview app")
         return k
