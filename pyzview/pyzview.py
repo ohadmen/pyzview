@@ -136,7 +136,7 @@ class Pyzview:
                 pass
             else:
                 assert len(t) == 3
-                tform[:3, -1] = t.flatten()
+                tform[:3, -1] = np.asarray(t).flatten()
         else:
             raise RuntimeError("unknown transforation structure")
         return tform
@@ -230,7 +230,7 @@ class Pyzview:
         xyzf[0:1] = self._get_pts_arr(v[0:1], 'w', alpha)
         xyzf[5:7] = self._get_pts_arr(v[5:7], 'r', alpha)
         xyzf[7:9] = self._get_pts_arr(v[7:9], 'g', alpha)
-
+        xyzf = xyzf.copy()
         if isinstance(namehandle, str):
             handlenum = self.zv.getHandleNumFromString(namehandle)
             if handlenum == -1:
