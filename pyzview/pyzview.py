@@ -185,7 +185,7 @@ class Pyzview:
                  [1, 2, 3], [1, 3, 4],
                  [0, 6, 5], [0, 7, 8]])}
 
-    def set_rectangle(self, name, tform_or_trs, color=None, alpha=None):
+    def add_rectangle(self, name, tform_or_trs, color=None, alpha=None):
         """
         :param name: object name or handle
         :param tform_or_trs: 4x4 transofrmation, or (translation,rotation,scale) tuple
@@ -194,15 +194,15 @@ class Pyzview:
         :return: handle to the drawn object
         exmaple:
         zv = Pyzview()
-        zv.set_rectangle("rect",np.eye(4),color='r')
+        zv.add_rectangle("rect",np.eye(4),color='r')
         t = (0,0,3)
         r = (0,0,np.pi/4)
         s = (1,2,3)
-        zv.set_rectangle("rect", (t,r,s), color='r')
+        zv.add_rectangle("rect", (t,r,s), color='r')
         """
         return self._set_obj('rect', name, tform_or_trs, color, alpha)
 
-    def set_marker(self, name, t, r=np.eye(3), scale=1.0, color=None, alpha=None):
+    def add_marker(self, name, t, r=np.eye(3), scale=1.0, color=None, alpha=None):
         """
         :param scale: marker scale
         :param name: object name or handle
@@ -213,15 +213,15 @@ class Pyzview:
         :return: handle to the drawn object
         exmaple:
         zv = Pyzview()
-        zv.set_marker("rect",np.eye(4),color='r')
+        zv.add_marker("rect",np.eye(4),color='r')
         t = (0,0,3)
         r = (0,0,np.pi/4)
         s = (1,2,3)
-        zv.set_rectangle("rect", t,r,s, color='r')
+        zv.add_rectangle("rect", t,r,s, color='r')
         """
         return self._set_obj('marker', name, (t, r, scale), color, alpha)
 
-    def set_camera(self, namehandle, t, r, scale=1.0, k=np.eye(3), color=None, alpha=None):
+    def add_camera(self, namehandle, t, r, scale=1.0, k=np.eye(3), color=None, alpha=None):
         tform = self._get_tform((t, r, None))
         v = self.objects['camera']['v'] * scale
         v[1:5] = v[1:5] @ np.linalg.inv(k).T
@@ -262,7 +262,7 @@ class Pyzview:
             raise RuntimeWarning("could not get response from zview app")
         return k
 
-    def set_mesh(self, namehandle, xyz, color=None, alpha=None):
+    def add_mesh(self, namehandle, xyz, color=None, alpha=None):
         if len(xyz.shape) != 3:
             raise RuntimeError("expecting nxmxD for D>=3")
         xyzf = self._get_pts_arr(xyz.reshape(-1, xyz.shape[2]), color, alpha)
@@ -283,7 +283,7 @@ class Pyzview:
             namehandle = self.zv.getHandleNumFromString(namehandle)
         return self.zv.removeShape(namehandle)
 
-    def set_points(self, namehandle, xyz, color=None, alpha=None):
+    def add_points(self, namehandle, xyz, color=None, alpha=None):
         xyzf = self._get_pts_arr(xyz, color, alpha)
         if isinstance(namehandle, str):
             handlenum = self.zv.getHandleNumFromString(namehandle)
