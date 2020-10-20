@@ -237,7 +237,7 @@ class Pyzview:
             handlenum = self.zv.getHandleNumFromString(namehandle)
             if handlenum == -1:
                 f = self.objects['camera']['f']
-                handlenum = self.add_trimesh(namehandle, xyzf, f, color, alpha)
+                handlenum = self.zv.addColoredMesh(namehandle, xyzf, f)
             else:
                 self.zv.updateColoredPoints(handlenum, xyzf)
             return handlenum
