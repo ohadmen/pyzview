@@ -1,3 +1,5 @@
+from typing import Union
+
 import zview_module
 import numpy as np
 
@@ -6,9 +8,9 @@ class Pyzview:
     @staticmethod
     def _get_trimesh_indices(sz):
         indx = np.arange(sz[0] * sz[1], dtype=np.int32).reshape(sz[:2])
-        triA = np.stack((indx[:-1, 1:], indx[:-1, :-1], indx[1:, 1:]), axis=2).reshape(-1, 3)
-        triB = np.stack((indx[:-1, :-1], indx[1:, :-1], indx[1:, 1:]), axis=2).reshape(-1, 3)
-        tri = np.r_[triA, triB]
+        tri_a = np.stack((indx[:-1, 1:], indx[:-1, :-1], indx[1:, 1:]), axis=2).reshape(-1, 3)
+        tri_b = np.stack((indx[:-1, :-1], indx[1:, :-1], indx[1:, 1:]), axis=2).reshape(-1, 3)
+        tri = np.r_[tri_a, tri_b]
         return tri
 
     @staticmethod
@@ -20,24 +22,24 @@ class Pyzview:
         return rgbafloat
 
     @staticmethod
-    def _str2rgb(str):
-        if str == 'r':
+    def _str2rgb(colorstr):
+        if colorstr == 'r':
             col = [1, 0, 0]
-        elif str == 'g':
+        elif colorstr == 'g':
             col = [0, 1, 0]
-        elif str == 'b':
+        elif colorstr == 'b':
             col = [0, 0, 1]
-        elif str == 'c':
+        elif colorstr == 'c':
             col = [0, 1, 1]
-        elif str == 'm':
+        elif colorstr == 'm':
             col = [1, 0, 1]
-        elif str == 'y':
+        elif colorstr == 'y':
             col = [1, 1, 0]
-        elif str == 'w':
+        elif colorstr == 'w':
             col = [1, 1, 1]
-        elif str == 'k':
+        elif colorstr == 'k':
             col = [0, 0, 0]
-        elif str == 'R':
+        elif colorstr == 'R':
             col = list(np.random.rand(3))
         else:
             raise RuntimeError("unknown color name")
@@ -100,7 +102,7 @@ class Pyzview:
         return r
 
     @classmethod
-    def _get_tform(cls, tform_or_trs):
+    def _get_tform(cls, tform_or_trs: Union[tuple, np.ndarray]):
         if isinstance(tform_or_trs, np.ndarray) and tform_or_trs.shape == (4, 4):
             tform = tform_or_trs
         elif isinstance(tform_or_trs, np.ndarray) and tform_or_trs.shape == (3, 4):
@@ -109,11 +111,10 @@ class Pyzview:
         elif isinstance(tform_or_trs, tuple) and len(tform_or_trs) == 3:
             t, r, s = tform_or_trs
 
-
             tform = np.eye(4)
             if r is None:
                 pass
-            elif (hasattr(r, '__len__') and len(r) == 3):
+            elif hasattr(r, '__len__') and len(r) == 3:
                 tform[:3, :3] = cls._rotation_matrix(r)
             elif isinstance(r, np.ndarray):
                 assert r.shape == (3, 3)
@@ -126,7 +127,7 @@ class Pyzview:
                 pass
             elif isinstance(s, float) or isinstance(s, int):
                 sv[0, 0] = sv[1, 1] = sv[2, 2] = s
-            elif (hasattr(s, '__len__') and len(s) == 3):
+            elif hasattr(s, '__len__') and len(s) == 3:
                 for i in range(3):
                     sv[i, i] = s[i]
             else:
@@ -146,7 +147,6 @@ class Pyzview:
 
         xyzf = self._get_pts_arr(self.objects[objtype]['v'], color, 1)
         xyzf[:, :3] = xyzf[:, :3] @ tform[:3, :3].T + tform[:3, -1]
-        k = self.zv.getHandleNumFromString(namehandle)
 
         if isinstance(namehandle, str):
             handlenum = self.zv.getHandleNumFromString(namehandle)
@@ -163,7 +163,7 @@ class Pyzview:
     def __init__(self):
         self.zv = zview_module.interface()  # get interface
         s = 1 / np.sqrt(3)
-        self.objects = {}
+        self.objects = dict()
         self.objects['marker'] = {'v': np.array([[-1, -s, 0], [0, 2 * s, 0], [1, -s, 0], [0, 0, np.sqrt(8) * s]]) / 2,
                                   'f': np.array([[0, 3, 1], [1, 3, 2], [0, 2, 3], [0, 2, 1]]),
                                   'counter': 0}
@@ -203,10 +203,12 @@ class Pyzview:
         """
         return self._set_obj('rect', name, tform_or_trs, color, alpha)
 
-    def set_marker(self, name, tform_or_trs, color=None, alpha=None):
+    def set_marker(self, name, t, r=np.eye(3), scale=1.0, color=None, alpha=None):
         """
+        :param scale: marker scale
         :param name: object name or handle
-        :param tform_or_trs: 4x4 transofrmation, or (translation,rotation,scale) tuple
+        :param t:translation
+        :param r: rotation
         :param color: color rgb triplet, or  single char ('r','g','b','k' ,'c','m','y')
         :param alpha: transparency
         :return: handle to the drawn object
@@ -216,13 +218,13 @@ class Pyzview:
         t = (0,0,3)
         r = (0,0,np.pi/4)
         s = (1,2,3)
-        zv.set_rectangle("rect", (t,r,s), color='r')
+        zv.set_rectangle("rect", t,r,s, color='r')
         """
-        return self._set_obj('marker', name, tform_or_trs, color, alpha)
+        return self._set_obj('marker', name, (t, r, scale), color, alpha)
 
-    def set_camera(self, namehandle, tform_or_trs, k=np.eye(3), color=None, alpha=None):
-        tform = self._get_tform(tform_or_trs)
-        v = self.objects['camera']['v']
+    def set_camera(self, namehandle, t, r, scale=1.0, k=np.eye(3), color=None, alpha=None):
+        tform = self._get_tform((t, r, scale))
+        v = self.objects['camera']['v'] * scale
         v[1:5] = v[1:5] @ np.linalg.inv(k).T
         v = v @ tform[:3, :3].T + tform[:3, -1]
 

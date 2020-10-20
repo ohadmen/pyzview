@@ -24,7 +24,7 @@ class TestPyzview(unittest.TestCase):
 
         self.zv.set_rectangle("rect", np.eye(3,4)*0.1, color='r')
         self.zv.set_marker("marker", (t2, r2, s2), color='g')
-        self.zv.set_camera("camera", (t3, r3, s3),k, color='b')
+        self.zv.set_camera("camera", t3, r3, s3,k, color='b')
 
     def test_set_points(self):
         self.zv.set_points("rand", np.random.rand(100, 6))
