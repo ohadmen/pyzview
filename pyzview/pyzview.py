@@ -6,6 +6,7 @@ import numpy as np
 
 class Singleton(type):
     _instances = {}
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
@@ -289,7 +290,7 @@ class Pyzview(metaclass=Singleton):
     def remove_shape(self, namehandle):
         if isinstance(namehandle, str):
             namehandle = self.zv.getHandleNumFromString(namehandle)
-            if namehandle==-1:
+            if namehandle == -1:
                 return
 
         return self.zv.removeShape(namehandle)
@@ -301,7 +302,11 @@ class Pyzview(metaclass=Singleton):
             if handlenum == -1:
                 handlenum = self.zv.addColoredPoints(namehandle, xyzf)
             else:
-                self.zv.updateColoredPoints(handlenum, xyzf)
+                ok = self.zv.updateColoredPoints(handlenum, xyzf)
+                if not ok:
+                    #visualization data is stored in a vertex buffer. If you are tryig to update an array which is bigger than the vertex buffer, than we have a problem...
+                    raise RuntimeError(
+                        "could not update points with the different size. create a new set for new point size")
             return handlenum
         else:
             self.zv.updateColoredPoints(namehandle, xyzf)
