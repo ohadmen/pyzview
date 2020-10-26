@@ -3,11 +3,7 @@ import numpy as np
 
 from pyzview import Pyzview
 
-
 class TestPyzview(unittest.TestCase):
-    def setUp(self) -> None:
-        self.zv = Pyzview()
-
 
     def test_set_object(self):
 
@@ -22,19 +18,19 @@ class TestPyzview(unittest.TestCase):
         s3 = 0.5
         k = np.array([[1.5,0,0],[0,2,0],[0,0,1]])
 
-        self.zv.set_rectangle("rect", np.eye(3,4)*0.1, color='r')
-        self.zv.set_marker("marker", t2, r2, s2, color='g')
-        self.zv.set_camera("camera", t3, r3, s3,k, color='b')
+        Pyzview().add_rectangle("rect", np.eye(3,4)*0.1, color='r')
+        Pyzview().add_marker("marker", t2, r2, s2, color='g')
+        Pyzview().add_camera("camera", t3, r3, s3,k, color='b')
 
     def test_set_points(self):
-        self.zv.set_points("rand", np.random.rand(100, 6))
+        Pyzview().add_points("rand", np.random.rand(100, 6))
 
     def test_add_edges(self):
         pts=np.array([[y=='1' for y in '{0:03b}'.format(x)] for x in range(8)])*1
         pts = np.c_[pts,np.random.rand(*pts.shape)]
         edges = np.array([[0,2],[2,6],[6,4],[4,0],[1,3],[3,7],[7,5],[5,1],[0,1],[2,3],[4,5],[6,7]])
-        self.zv.remove_shape('edges')
-        self.zv.add_edges("edges",pts,edges)
+        Pyzview().remove_shape('edges')
+        Pyzview().add_edges("edges",pts,edges)
 
     def test_add_mesh(self):
         xg, yg = np.meshgrid(np.linspace(-1, 1, 30), np.linspace(-1, 1, 30))
@@ -44,7 +40,7 @@ class TestPyzview(unittest.TestCase):
         zg = np.exp(-0.5 / s1 * r2) - np.exp(-0.5 / s2 * r2)
         xyz=np.stack([xg, yg, zg],axis=2)
 
-        self.zv.set_mesh("mesh",xyz)
+        Pyzview().add_mesh("mesh",xyz)
 
 
 

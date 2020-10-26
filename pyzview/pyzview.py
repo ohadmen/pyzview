@@ -4,7 +4,15 @@ import zview_module
 import numpy as np
 
 
-class Pyzview:
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class Pyzview(metaclass=Singleton):
     @staticmethod
     def _get_trimesh_indices(sz):
         indx = np.arange(sz[0] * sz[1], dtype=np.int32).reshape(sz[:2])
@@ -281,6 +289,9 @@ class Pyzview:
     def remove_shape(self, namehandle):
         if isinstance(namehandle, str):
             namehandle = self.zv.getHandleNumFromString(namehandle)
+            if namehandle==-1:
+                return
+
         return self.zv.removeShape(namehandle)
 
     def add_points(self, namehandle, xyz, color=None, alpha=None):
