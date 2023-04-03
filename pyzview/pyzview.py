@@ -317,3 +317,7 @@ class Pyzview(metaclass=Singleton):
 
     def get_last_keystroke(self):
         return self.zv.getLastKeyStroke()
+    
+    def get_target_xyz(self):
+        return self.zv.getTargetXYZ()
+        
