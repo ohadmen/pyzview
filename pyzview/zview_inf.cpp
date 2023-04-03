@@ -89,6 +89,13 @@ public:
     {
         return m_zvi->getHandleNumFromString(name);
     }
+    py::array_t<float> getTargetXYZ()
+    {
+        py::array_t<float> xyz(3);
+
+        m_zvi->getClickedTarget(arr2ptr(xyz));
+        return xyz;
+    }
 
 };
 
@@ -111,7 +118,8 @@ PYBIND11_MODULE(zview_module, m)
         .def("addColoredEdges", &ZviewInfWrapper::addColoredEdges)
         .def("loadFile", &ZviewInfWrapper::loadFile)
         .def("removeShape", &ZviewInfWrapper::removeShape)
-        .def("getHandleNumFromString", &ZviewInfWrapper::getHandleNumFromString);
+        .def("getHandleNumFromString", &ZviewInfWrapper::getHandleNumFromString)
+        .def("getTargetXYZ", &ZviewInfWrapper::getTargetXYZ);
 
         
 }
