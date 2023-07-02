@@ -77,7 +77,7 @@ public:
     }
     int getLastKeyStroke(){return m_zvi->getLastKeyStroke();}
     bool savePly(const char *fn) { return m_zvi->savePly(fn); }
-    
+    int addPoints(const char *name, const py::array_t<float>& xyz) {dataChk(xyz,3); return m_zvi->addPoints(name, getrows(xyz), arr2ptr(xyz)); }
     int addColoredPoints(const char *name, py::array_t<float>&xyzrgba) {dataChk(xyzrgba,4); return m_zvi->addColoredPoints(name, getrows(xyzrgba), arr2ptr(xyzrgba)); }
     bool updatePoints(int key, py::array_t<float>&xyz) {dataChk(xyz,3);  return m_zvi->updatePoints(key,getrows(xyz), arr2ptr(xyz)); }
     bool updateColoredPoints(int key, py::array_t<float>&xyzrgba) {dataChk(xyzrgba,4);  return m_zvi->updateColoredPoints(key, getrows(xyzrgba), arr2ptr(xyzrgba)); }
@@ -100,8 +100,6 @@ public:
     {
         return m_zvi->getHandleNumFromString(name);
     }
-<<<<<<< Updated upstream
-=======
     py::array_t<float> getTargetXYZ()
     {
         py::array_t<float> xyz(3);
@@ -123,8 +121,6 @@ public:
         }
         return ver;
     }
->>>>>>> Stashed changes
-
 };
 
 
@@ -138,6 +134,7 @@ PYBIND11_MODULE(zview_module, m)
         .def("setCameraLookAt", &ZviewInfWrapper::setCameraLookAt)
         .def("updatePoints", &ZviewInfWrapper::updatePoints)
         .def("updateColoredPoints", &ZviewInfWrapper::updateColoredPoints)
+        .def("addPoints", &ZviewInfWrapper::addPoints)
         .def("addColoredPoints", &ZviewInfWrapper::addColoredPoints)
         .def("addMesh", &ZviewInfWrapper::addMesh)
         .def("addColoredMesh", &ZviewInfWrapper::addColoredMesh)
@@ -145,13 +142,8 @@ PYBIND11_MODULE(zview_module, m)
         .def("addColoredEdges", &ZviewInfWrapper::addColoredEdges)
         .def("loadFile", &ZviewInfWrapper::loadFile)
         .def("removeShape", &ZviewInfWrapper::removeShape)
-<<<<<<< Updated upstream
-        .def("getHandleNumFromString", &ZviewInfWrapper::getHandleNumFromString);
-=======
         .def("getHandleNumFromString", &ZviewInfWrapper::getHandleNumFromString)
         .def("getTargetXYZ", &ZviewInfWrapper::getTargetXYZ)
         .def("getVersion", &ZviewInfWrapper::getVersion);
->>>>>>> Stashed changes
-
         
 }

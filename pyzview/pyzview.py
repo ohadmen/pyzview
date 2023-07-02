@@ -300,7 +300,6 @@ class Pyzview(metaclass=Singleton):
         if isinstance(namehandle, str):
             handlenum = self.zv.getHandleNumFromString(namehandle)
             if handlenum == -1:
-                print(hex(id(xyzf)))
                 handlenum = self.zv.addColoredPoints(namehandle, xyzf)
             else:
                 ok = self.zv.updateColoredPoints(handlenum, xyzf)
@@ -318,13 +317,9 @@ class Pyzview(metaclass=Singleton):
 
     def get_last_keystroke(self):
         return self.zv.getLastKeyStroke()
-<<<<<<< Updated upstream
-=======
-    
+  
     def get_target_xyz(self):
         return self.zv.getTargetXYZ()
 
     def get_version(self):
         return self.zv.getVersion()
-
->>>>>>> Stashed changes
