@@ -26,7 +26,7 @@ class ZviewInfWrapper
     void setZero(const py::array_t<T>& arr)
     {
         T* p = arr2ptr(arr);
-        for(size_t i{0};i<arr.size();++i)
+        for(ssize_t i{0};i<arr.size();++i)
         {
             p[i]=T{0};
         }

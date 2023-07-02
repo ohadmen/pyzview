@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from pybind11.setup_helpers import Pybind11Extension, build_ext
+from pybind11.setup_helpers import Pybind11Extension
 __version__ = "1.5.0"
 
 module = Pybind11Extension("zview_module",
@@ -16,6 +16,7 @@ setup(
      author="Ohad Menashe",
      author_email="ohad.men@gmail.com",
      description="zview python inferface",
+     long_description_content_type="text/markdown",
      long_description=long_description,
      url="https://github.com/ohadmen/pyzview",
      packages=find_packages(),
