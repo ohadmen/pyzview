@@ -103,7 +103,6 @@ public:
     py::array_t<float> getTargetXYZ()
     {
         py::array_t<float> xyz(3);
-
         bool ok = m_zvi->getClickedTarget(arr2ptr(xyz));
         if(!ok)
         {

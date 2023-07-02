@@ -1,4 +1,4 @@
-===========
+
 Pyzview
 ===========
 
@@ -13,6 +13,8 @@ You'll need to install ziew stanalon app, You can grab it from:
 Installation
 ------------
     pip install pyzview
+   * pybind 2.2 is required!  
+   
 
 
 Usage example

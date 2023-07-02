@@ -1,6 +1,8 @@
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, find_packages
+from pybind11.setup_helpers import Pybind11Extension, build_ext
+__version__ = "1.5.0"
 
-module = Extension("zview_module",
+module = Pybind11Extension("zview_module",
                        sources=["pyzview/zview_inf.cpp"],
                        libraries = ["zview_inf"],   
                        
@@ -10,7 +12,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 setup(
      name='pyzview',  
-     version='1.50',
+     version=__version__,
      author="Ohad Menashe",
      author_email="ohad.men@gmail.com",
      description="zview python inferface",
