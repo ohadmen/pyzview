@@ -23,6 +23,17 @@ class ZviewInfWrapper
     }
 
     template<class T>
+    void setZero(const py::array_t<T>& arr)
+    {
+        T* p = arr2ptr(arr);
+        for(ssize_t i{0};i<arr.size();++i)
+        {
+            p[i]=T{0};
+        }
+    }
+
+
+    template<class T>
     size_t getrows(const py::array_t<T>& arr)
     {
         py::buffer_info buff = arr.request();
@@ -92,11 +103,23 @@ public:
     py::array_t<float> getTargetXYZ()
     {
         py::array_t<float> xyz(3);
-
-        m_zvi->getClickedTarget(arr2ptr(xyz));
+        bool ok = m_zvi->getClickedTarget(arr2ptr(xyz));
+        if(!ok)
+        {
+            setZero(xyz);
+        }
         return xyz;
     }
-
+    py::array_t<std::uint8_t,3> getVersion()
+    {
+        py::array_t<std::uint8_t> ver(3);
+        bool ok = m_zvi->getVersion(arr2ptr(ver));
+        if(!ok)
+        {
+            setZero(ver);
+        }
+        return ver;
+    }
 };
 
 
@@ -119,7 +142,7 @@ PYBIND11_MODULE(zview_module, m)
         .def("loadFile", &ZviewInfWrapper::loadFile)
         .def("removeShape", &ZviewInfWrapper::removeShape)
         .def("getHandleNumFromString", &ZviewInfWrapper::getHandleNumFromString)
-        .def("getTargetXYZ", &ZviewInfWrapper::getTargetXYZ);
-
+        .def("getTargetXYZ", &ZviewInfWrapper::getTargetXYZ)
+        .def("getVersion", &ZviewInfWrapper::getVersion);
         
 }
