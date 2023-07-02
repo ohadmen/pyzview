@@ -10,7 +10,11 @@ with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 setup(
      name='pyzview',  
+<<<<<<< Updated upstream
      version='1.48a',
+=======
+     version='1.50',
+>>>>>>> Stashed changes
      author="Ohad Menashe",
      author_email="ohad.men@gmail.com",
      description="zview python inferface",
@@ -23,4 +27,6 @@ setup(
          "License :: OSI Approved :: MIT License",
          "Operating System :: OS Independent",
      ],
+    install_requires=[
+        'numpy>=1.24.4'  ],
  )
